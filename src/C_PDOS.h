@@ -3,13 +3,18 @@
 #include <stdio.h>
 #include <string.h>
 
-xmlDocPtr getdoc(char *docname);
-xmlXPathObjectPtr getNodeSet(xmlDocPtr doc, xmlChar *xpath);
+#define MAXBANDS 4
 
+typedef struct{
+		double e;
+		double dos;
+		double edos;
+} POINT;
 typedef struct{
 		char bandName[1];
 		int NumPoints;
-		xmlXPathObjectPtr *Points;
+		POINT points[];
 } BAND;
-
-
+xmlDocPtr getdoc(char *docname);
+xmlXPathObjectPtr getNodeSet(xmlDocPtr doc, xmlChar *xpath);
+int getBands(xmlNodeSetPtr nodeset, BAND *bands[]);

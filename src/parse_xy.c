@@ -1,4 +1,9 @@
 #include "C_PDOS.h"
+#include <libxml/tree.h>
+#include <libxml/xpath.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 xmlDocPtr getdoc(char *docname)
 {
@@ -39,44 +44,54 @@ xmlXPathObjectPtr getNodeSet(xmlDocPtr doc, xmlChar *xpath)
     return result;
 }
 
-int main(int argc, char *argv[])
+/** get BAND struct pointers from the XPath parsed result
+ * @result: xmlXPathObjectPtr;
+ * returns: pointers of BANDS;
+ */
+int getBands(xmlNodeSetPtr nodeset, BAND *bands[])
 {
-    char *docname;
-    xmlDocPtr doc;
-    xmlChar *bands = (xmlChar *)"//SERIES_2D";
-    xmlNodeSetPtr nodeset;
-    xmlXPathObjectPtr result;
-    int i;
+    int numNode = nodeset->nodeNr; /* Number of nodes in //SERIES_2D */
+    xmlNodePtr child;
     xmlChar *bandName;
-    xmlChar *NumPoints;
+    int i, j, k;   /* for loop indexing */
+    int NumPoints; /* Record number of points in SERIES_2D */
+    for (i = 0; i < numNode; i++)
+    {
+        bandName = xmlGetProp(nodeset->nodeTab[i],
+                              (xmlChar *)"Name"); /*get band name */
+        NumPoints = atoi((const char *)xmlGetProp(
+            nodeset->nodeTab[i],
+            (xmlChar *)"NumPoints")); /* get number of points */
+        bands[i] =
+            malloc(sizeof(POINT) * NumPoints +
+                   sizeof(*bands[i])); /* Allocate storage to the points[] */
+        /* Save bandName and NumPoints to bands[i] */
+        sscanf((const char *)bandName, "%s", bands[i]->bandName);
+        bands[i]->NumPoints = NumPoints;
 
-    if (argc <= 1)
-    {
-        fprintf(stdout, "Usage: %s <docname>\n", argv[0]);
-        return 1;
-    }
-    docname = argv[1];
-    doc = getdoc(docname);
-    result = getNodeSet(doc, bands);
-    if (result)
-    {
-        nodeset = result->nodesetval;
-        int numNode = nodeset->nodeNr;
-        BAND bands[numNode];
-        for (i = 0; i < numNode; i++)
+        /* Test */
+        printf("Band %s have %d points\n", bands[i]->bandName,
+               bands[i]->NumPoints);
+        /* Walkthrough children nodes*/
+        child = nodeset->nodeTab[i]->children;
+        /** The range of j must be NumPoints * 2 since the <POINT_2D> node has
+         * no string. The string also counts for 1 child nodes. To proceed to
+         * next <POINT_2D XY="...">, we must go two steps further. Directly
+         * child->next->next is not available, it will induce segfault.*/
+        for (j = 0, k = 0; j <= NumPoints * 2 && child != NULL;
+             j++, child = child->next)
         {
-            bandName = xmlGetProp(nodeset->nodeTab[i], (xmlChar *)"Name");
-            sscanf((const char *)bandName, "%s", bands[i].bandName);
-            NumPoints = xmlGetProp(nodeset->nodeTab[i], (xmlChar *)"NumPoints");
-            bands[i].NumPoints = atoi((const char *)NumPoints);
-            printf("Band %s have %d points\n", bands[i].bandName,
-                   bands[i].NumPoints);
-            xmlFree(bandName);
-            xmlFree(NumPoints);
+            if ((!xmlStrcmp(child->name, (const xmlChar *)"POINT_2D")))
+            {
+                POINT curPoint; /* for readibility */
+                curPoint = bands[i]->points[k];
+                sscanf((const char *)xmlGetProp(child, (xmlChar *)"XY"),
+                       "%lf,%lf", &curPoint.e, &curPoint.dos);
+                curPoint.edos = curPoint.e * curPoint.dos;
+                bands[i]->points[k++] = curPoint;
+            }
         }
-        xmlXPathFreeObject(result);
+        xmlFree(bandName);
     }
-    xmlFreeDoc(doc);
-    xmlCleanupParser();
-    return 0;
+    return i;
 }
