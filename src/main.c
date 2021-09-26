@@ -1,6 +1,8 @@
 #include "C_PDOS.h"
 #include <stdio.h>
 
+void test(BAND *band);
+
 int main(int argc, char *argv[])
 {
     char *docname;
@@ -22,15 +24,7 @@ int main(int argc, char *argv[])
         nodeset = result->nodesetval;
         BAND *bands[nodeset->nodeNr]; /* Array of pointers to BAND struct */
         getBands(nodeset, bands);     /* Load contents to bands */
-        int i;
-        POINT curPoint;
-        printf("%19s %19s %19s\n", "e", "dos", "edos");
-        for (i = 0; i < bands[3]->NumPoints; i++)
-        {
-            curPoint = bands[3]->points[i];
-            printf("%19.15f %19.15f %19.15f\n", curPoint.e, curPoint.dos,
-                   curPoint.edos);
-        }
+        test(bands[2]);
     }
     else
     {
@@ -40,4 +34,20 @@ int main(int argc, char *argv[])
     xmlFreeDoc(doc);
     xmlCleanupParser();
     return 0;
+}
+
+void test(BAND *band)
+{
+    int i;
+    POINT curPoint;
+    printf("%19s %19s %19s\n", "e", "dos", "edos");
+    for (i = 0; i < band->NumPoints; i++)
+    {
+        curPoint = band->points[i];
+        printf("%19.15f %19.15f %19.15f\n", curPoint.e, curPoint.dos,
+               curPoint.edos);
+    }
+    double bcenter;
+    bcenter = bandCenter(band);
+    printf("%s band center = %.16lf\n", band->bandName, bcenter);
 }

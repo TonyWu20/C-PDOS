@@ -18,3 +18,4 @@ typedef struct{
 xmlDocPtr getdoc(char *docname);
 xmlXPathObjectPtr getNodeSet(xmlDocPtr doc, xmlChar *xpath);
 int getBands(xmlNodeSetPtr nodeset, BAND *bands[]);
+double bandCenter(BAND *band);
