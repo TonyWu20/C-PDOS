@@ -1,3 +1,4 @@
+#include <ftw.h>
 #include <libxml/parser.h>
 #include <libxml/xpath.h>
 #include <stdio.h>
@@ -19,3 +20,7 @@ xmlDocPtr getdoc(char *docname);
 xmlXPathObjectPtr getNodeSet(xmlDocPtr doc, xmlChar *xpath);
 int getBands(xmlNodeSetPtr nodeset, BAND *bands[]);
 double bandCenter(BAND *band);
+
+int visit(const char *path, const struct stat *stat, int flags, struct FTW *ftw);
+int parseBandCenter(char *docname);
+void test(BAND *band);

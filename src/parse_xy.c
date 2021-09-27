@@ -1,3 +1,4 @@
+#include "/opt/homebrew/include/omp.h"
 #include "C_PDOS.h"
 #include <libxml/tree.h>
 #include <libxml/xpath.h>
@@ -55,6 +56,7 @@ int getBands(xmlNodeSetPtr nodeset, BAND *bands[])
     xmlChar *bandName;
     int i, j, k;   /* for loop indexing */
     int NumPoints; /* Record number of points in SERIES_2D */
+#pragma omp parallel for
     for (i = 0; i < numNode; i++)
     {
         bandName = xmlGetProp(nodeset->nodeTab[i],
@@ -69,19 +71,19 @@ int getBands(xmlNodeSetPtr nodeset, BAND *bands[])
         sscanf((const char *)bandName, "%s", bands[i]->bandName);
         bands[i]->NumPoints = NumPoints;
 
-        /* Test */
-        printf("Band %s have %d points\n", bands[i]->bandName,
-               bands[i]->NumPoints);
         /* Walkthrough children nodes*/
         child = nodeset->nodeTab[i]->children;
         /** The range of j must be NumPoints * 2 since the <POINT_2D> node has
          * no string. The string also counts for 1 child nodes. To proceed to
          * next <POINT_2D XY="...">, we must go two steps further. Directly
          * child->next->next is not available, it will induce segfault.*/
-        for (j = 0, k = 0; j <= NumPoints * 2 && child != NULL;
-             j++, child = child->next)
+        j = k = 0;
+        int NP = NumPoints * 2;
+#pragma omp parallel for
+        for (j = 0; j <= NP; j++)
         {
-            if ((!xmlStrcmp(child->name, (const xmlChar *)"POINT_2D")))
+            if ((!xmlStrcmp(child->name, (const xmlChar *)"POINT_2D")) &&
+                child != NULL)
             {
                 POINT curPoint; /* for readibility */
                 curPoint = bands[i]->points[k];
@@ -90,6 +92,7 @@ int getBands(xmlNodeSetPtr nodeset, BAND *bands[])
                 curPoint.edos = curPoint.e * curPoint.dos;
                 bands[i]->points[k++] = curPoint;
             }
+            child = child->next;
         }
         xmlFree(bandName);
     }
