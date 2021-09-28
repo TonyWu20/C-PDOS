@@ -1,4 +1,3 @@
-#include "/opt/homebrew/include/omp.h"
 #include "C_PDOS.h"
 #include <libxml/tree.h>
 #include <libxml/xpath.h>
@@ -56,7 +55,6 @@ int getBands(xmlNodeSetPtr nodeset, BAND *bands[])
     xmlChar *bandName;
     int i, j, k;   /* for loop indexing */
     int NumPoints; /* Record number of points in SERIES_2D */
-#pragma omp parallel for
     for (i = 0; i < numNode; i++)
     {
         bandName = xmlGetProp(nodeset->nodeTab[i],
@@ -79,7 +77,6 @@ int getBands(xmlNodeSetPtr nodeset, BAND *bands[])
          * child->next->next is not available, it will induce segfault.*/
         j = k = 0;
         int NP = NumPoints * 2;
-#pragma omp parallel for
         for (j = 0; j <= NP; j++)
         {
             if ((!xmlStrcmp(child->name, (const xmlChar *)"POINT_2D")) &&

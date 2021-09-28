@@ -1,4 +1,3 @@
-#include "/opt/homebrew/include/omp.h"
 #include "C_PDOS.h"
 #include <stdio.h>
 
@@ -9,7 +8,6 @@ double bandCenter(BAND *band)
     double pedeI, pdeI, bandCenter;
     pedeI = pdeI = 0.0;
 
-#pragma omp parallel for reduction(+ : pedeI, pdeI)
     for (int i = 0; i < NumPoints - 1; i++)
     {
         pedeI += (band->points[i + 1].e - band->points[i].e) *
