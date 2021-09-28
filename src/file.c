@@ -8,10 +8,10 @@
 int parseBandCenter(char *docname)
 {
     xmlDocPtr doc;
-    xmlChar *bands = (xmlChar *)"//SERIES_2D";
+    xmlChar *bandXPath = (xmlChar *)"//SERIES_2D";
     xmlXPathObjectPtr result;
     doc = getdoc(docname);
-    result = getNodeSet(doc, bands);
+    result = getNodeSet(doc, bandXPath);
     if (result)
     {
         xmlNodeSetPtr nodeset;
