@@ -53,3 +53,5 @@ dkms.conf
 
 # test files
 *.xcd
+CMakeFiles/
+build/
