@@ -7,7 +7,9 @@
 #define MAXFILES 5000
 const char *path;
 char *paths[MAXFILES];
-int i = 0;
+PATHOBJ xcd[3000];
+PATHOBJ *ptr;
+int num_files = 0;
 
 void test(BAND *band);
 
@@ -28,6 +30,8 @@ int main(int argc, char *argv[])
         core_num = -core_num;
     printf("Running with %d core(s)\n", core_num);
 
+    ptr = xcd;
+
     if ((nftw(argc >= 2 ? docpattern : ".", visit, 5, 0) != 0))
     {
         perror("nftw");
@@ -41,12 +45,13 @@ int main(int argc, char *argv[])
         if (pid[j] == 0)
         {
             /* divide the collected paths */
-            for (int k = j * i / core_num; k < (j + 1) * i / core_num; k++)
+            for (int k = j * num_files / core_num;
+                 k < (j + 1) * num_files / core_num; k++)
             {
-                parseBandCenter(paths[k]);
+                parseBandCenter(xcd[k]);
             }
-            printf("Finish %d to %d\n", j * i / core_num,
-                   (j + 1) * i / core_num);
+            printf("Finish %d to %d\n", j * num_files / core_num,
+                   (j + 1) * num_files / core_num);
             exit(0);
         }
     }

@@ -16,11 +16,21 @@ typedef struct{
 		int NumPoints;
 		POINT points[];
 } BAND;
+typedef struct
+{
+    char *fullpath;
+    char *basename;
+    char *dirname;
+    int tokenNum;
+    char *obj;
+    char *token[10];
+	double dbandCenter;
+} PATHOBJ;
 xmlDocPtr getdoc(char *docname);
 xmlXPathObjectPtr getNodeSet(xmlDocPtr doc, xmlChar *xpath);
 int getBands(xmlNodeSetPtr nodeset, BAND *bands[]);
 double bandCenter(BAND *band);
 
 int visit(const char *path, const struct stat *stat, int flags, struct FTW *ftw);
-int parseBandCenter(char *docname);
+int parseBandCenter(PATHOBJ xcd_file);
 void test(BAND *band);
